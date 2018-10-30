@@ -19,6 +19,16 @@ module.exports = {
     if (!dec || !ra || !story) {
       return res.badRequest("Missing information for star registration");
     }
+
+    if (new Buffer(story).length > 500) {
+      return res.badRequest("Your story is too long. The Universe is made of short stories.");
+    }
+
+    const is_ASCII_in_hex = ((hexString) => /^[\x00-\x7F]*$/.test(hexString))
+
+    if (!is_ASCII_in_hex(story)) {
+      return res.badRequest("Your story contains invalid characters. The Universe only accepts ASCII.");
+    }
     // }}}
 
     // Signature Validation: {{{
@@ -36,6 +46,7 @@ module.exports = {
  
     // Reformat and make sure that only recognizable fields remain
     const blockData = {
+      address,
       star : {
         dec,
         ra,
@@ -45,13 +56,13 @@ module.exports = {
       }
     };
 
+
     try {
       const addedBlock = await blockchain.addBlock(new Block(blockData));
-      // console.log(blockData);
+      await starNotary.invalidate(address); 
       return res.status(201).json(addedBlock);
     } 
     catch(err) {
-      console.log(err);
       return res.serverError("Can't register now");
     }
     // }}}

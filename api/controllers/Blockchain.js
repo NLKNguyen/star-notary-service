@@ -23,6 +23,11 @@ const SHA256 = require('crypto-js/sha256');
 const bitcoin = require('bitcoinjs-lib');
 const bitcoinMessage = require('bitcoinjs-message');
 
+/*
+ * Helper function to decode hex to ascii
+ * */
+const hex2ascii = (hex) => Buffer.from(hex, 'hex').toString('ascii');
+
 /* ===== Block Class ======================
    Class with a constructor for block 		 
    ======================================== */
@@ -119,7 +124,11 @@ class Blockchain{
   // get block
   getBlock(blockHeight){
     const key = blockHeight.toString();
-    return this.db.get(key).then(value => JSON.parse(value));
+    return this.db.get(key).then(value => {
+      const block = JSON.parse(value);
+      block.body.star.storyDecoded = hex2ascii(block.body.star.story);
+      return block;
+    });
   }
 
   // validate block
@@ -178,6 +187,7 @@ class Blockchain{
     });
   }
 
+
   findBlocksByAddress(address){
     return new Promise((resolve, reject) => {
       const result = [];
@@ -185,6 +195,7 @@ class Blockchain{
         .on('data', value =>  {
           const block = JSON.parse(value);
           if (block.body.address === address) {
+            block.body.star.storyDecoded = hex2ascii(block.body.star.story);
             result.push(block);
           }
         })
@@ -200,6 +211,7 @@ class Blockchain{
         .on('data', value =>  {
           const block = JSON.parse(value);
           if (block.hash === hash) {
+            block.body.star.storyDecoded = hex2ascii(block.body.star.story);
             resolve(block);
           }
         })

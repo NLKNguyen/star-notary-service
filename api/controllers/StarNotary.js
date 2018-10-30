@@ -4,8 +4,8 @@ const bitcoinMessage = require('bitcoinjs-message');
 
 class StarNotary {
   constructor(){
-    this.chainDB = './stardata';
-    this.db = level(this.chainDB);
+    this.starDB = './stardata';
+    this.db = level(this.starDB);
   }
 
   dbAdd(record) {
@@ -27,6 +27,10 @@ class StarNotary {
     this.dbAdd(record);
 
     return record;
+  }
+
+  async invalidate(address) {
+    return this.db.del(address);
   }
 
   async hasValidSignature(address) {
